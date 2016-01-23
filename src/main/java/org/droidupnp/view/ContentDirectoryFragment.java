@@ -41,7 +41,7 @@ import org.droidupnp.model.upnp.didl.IDIDLObject;
 import org.droidupnp.model.upnp.didl.IDIDLParentContainer;
 
 import android.app.Activity;
-import android.app.ListFragment;
+import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -53,6 +53,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -61,15 +62,17 @@ import android.widget.Toast;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
 
-public class ContentDirectoryFragment extends ListFragment implements Observer
+public class ContentDirectoryFragment extends Fragment implements Observer
 {
-	private static final String TAG = "ContentDirectoryFragment";
+	private static final String TAG = "ContentDirectoryFragme";
 
 	private ArrayAdapter<DIDLObjectDisplay> contentList;
 	private LinkedList<String> tree = null;
 	private String currentID = null;
 	private IUpnpDevice device;
 
+	private GridView mGridView;
+	private TextView mEmptyView;
 	private IContentDirectoryCommand contentDirectoryCommand;
 
 	static final String STATE_CONTENTDIRECTORY = "contentDirectory";
@@ -174,7 +177,7 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 
 		contentList = new CustomAdapter(this.getView().getContext());
 
-		setListAdapter(contentList);
+		mGridView.setAdapter(contentList);
 
 		deviceObserver = new DeviceObserver(this);
 		Main.upnpServiceController.getContentDirectoryDiscovery().addObserver(deviceObserver);
@@ -201,7 +204,7 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 			contentDirectoryCommand = Main.factory.createContentDirectoryCommand();
 		}
 
-		getListView().setOnItemLongClickListener( new AdapterView.OnItemLongClickListener() {
+		mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> adapterView, View v, int position, long id) {
 				Log.v(TAG, "On long-click event");
@@ -246,11 +249,18 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 
 	private PullToRefreshLayout mPullToRefreshLayout;
 
+	private GridView getGridView() {
+		return mGridView;
+	}
+
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState)
 	{
 		super.onViewCreated(view, savedInstanceState);
 
+		mEmptyView = new TextView(view.getContext());
+		mGridView = (GridView) this.getView().findViewById(R.id.gridView);
+        mGridView.setEmptyView(mEmptyView);
 		// This is the View which is created by ListFragment
 		ViewGroup viewGroup = (ViewGroup) view;
 
@@ -262,7 +272,7 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 		// We can now setup the PullToRefreshLayout
 		ActionBarPullToRefresh.from(getActivity())
 			.insertLayoutInto(viewGroup)
-			.theseChildrenArePullable(getListView(), getListView().getEmptyView())
+			.theseChildrenArePullable(getGridView(), getGridView().getEmptyView())
 			.listener(new uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener() {
 				@Override
 				public void onRefreshStarted(View view) {
@@ -270,6 +280,13 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 				}
 			})
 			.setup(mPullToRefreshLayout);
+
+		mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			public void onItemClick(AdapterView<?> parent, View v,
+									int position, long id) {
+				onListItemClick(null, v, position, id);
+			}
+		});
 	}
 
 	@Override
@@ -352,6 +369,8 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 					public void run() {
 						try {
 							mPullToRefreshLayout.setRefreshComplete();
+							//redraw gridView
+							mGridView.invalidateViews();
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -402,7 +421,7 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 	}
 
 	public void setEmptyText(CharSequence text) {
-		((TextView)getListView().getEmptyView()).setText(text);
+		((TextView)getGridView().getEmptyView()).setText(text);
 	}
 
 	public synchronized void refresh()
@@ -492,11 +511,8 @@ public class ContentDirectoryFragment extends ListFragment implements Observer
 		}
 	}
 
-	@Override
 	public void onListItemClick(ListView l, View v, int position, long id)
 	{
-		super.onListItemClick(l, v, position, id);
-
 		IDIDLObject didl = contentList.getItem(position).getDIDLObject();
 
 		try {
