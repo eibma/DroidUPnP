@@ -47,6 +47,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,6 +59,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.v7.widget.RecyclerView;
+
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
@@ -66,12 +69,15 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 {
 	private static final String TAG = "ContentDirectoryFragme";
 
-	private ArrayAdapter<DIDLObjectDisplay> contentList;
 	private LinkedList<String> tree = null;
 	private String currentID = null;
 	private IUpnpDevice device;
 
-	private GridView mGridView;
+	private RecyclerView mRecyclerView;
+    private ContentDirectoryGridViewAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+
+//	private GridView mGridView;
 	private TextView mEmptyView;
 	private IContentDirectoryCommand contentDirectoryCommand;
 
@@ -175,9 +181,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 	{
 		super.onActivityCreated(savedInstanceState);
 
-		contentList = new CustomAdapter(this.getView().getContext());
-
-		mGridView.setAdapter(contentList);
+		mRecyclerView.setAdapter(mAdapter);
 
 		deviceObserver = new DeviceObserver(this);
 		Main.upnpServiceController.getContentDirectoryDiscovery().addObserver(deviceObserver);
@@ -204,36 +208,33 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 			contentDirectoryCommand = Main.factory.createContentDirectoryCommand();
 		}
 
-		mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-			@Override
-			public boolean onItemLongClick(AdapterView<?> adapterView, View v, int position, long id) {
-				Log.v(TAG, "On long-click event");
-
-				IDIDLObject didl = contentList.getItem(position).getDIDLObject();
-
-				if (didl instanceof IDIDLItem)
-				{
-					IDIDLItem ididlItem = (IDIDLItem) didl;
-					final Activity a = getActivity();
-					final Intent intent = new Intent(Intent.ACTION_VIEW);
-
-					Uri uri = Uri.parse(ididlItem.getURI());
-					intent.setDataAndType(uri, didl.getDataType());
-
-					try {
-						a.startActivity(intent);
-					} catch (ActivityNotFoundException ex) {
-						Toast.makeText(getActivity(), R.string.failed_action, Toast.LENGTH_SHORT).show();
-					}
-				}
-				else
-				{
-					Toast.makeText(getActivity(), R.string.no_action_available, Toast.LENGTH_SHORT).show();
-				}
-
-				return true;
-			}
-		});
+//		mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//			@Override
+//			public boolean onItemLongClick(AdapterView<?> adapterView, View v, int position, long id) {
+//				Log.v(TAG, "On long-click event");
+//
+//				IDIDLObject didl = contentList.getItem(position).getDIDLObject();
+//
+//				if (didl instanceof IDIDLItem) {
+//					IDIDLItem ididlItem = (IDIDLItem) didl;
+//					final Activity a = getActivity();
+//					final Intent intent = new Intent(Intent.ACTION_VIEW);
+//
+//					Uri uri = Uri.parse(ididlItem.getURI());
+//					intent.setDataAndType(uri, didl.getDataType());
+//
+//					try {
+//						a.startActivity(intent);
+//					} catch (ActivityNotFoundException ex) {
+//						Toast.makeText(getActivity(), R.string.failed_action, Toast.LENGTH_SHORT).show();
+//					}
+//				} else {
+//					Toast.makeText(getActivity(), R.string.no_action_available, Toast.LENGTH_SHORT).show();
+//				}
+//
+//				return true;
+//			}
+//		});
 
 		Log.d(TAG, "Force refresh");
 		refresh();
@@ -247,52 +248,30 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 		Main.upnpServiceController.getContentDirectoryDiscovery().removeObserver(deviceObserver);
 	}
 
-	private PullToRefreshLayout mPullToRefreshLayout;
-
-	private GridView getGridView() {
-		return mGridView;
-	}
-
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState)
 	{
 		super.onViewCreated(view, savedInstanceState);
 
 		mEmptyView = new TextView(view.getContext());
-		mGridView = (GridView) this.getView().findViewById(R.id.gridView);
-        mGridView.setEmptyView(mEmptyView);
-		// This is the View which is created by ListFragment
+		mRecyclerView = (RecyclerView) this.getView().findViewById(R.id.gridView);
+		mRecyclerView.setHasFixedSize(true);
+		// use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(this.getView().getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        // specify an adapter (see also next example)
+        mAdapter = new ContentDirectoryGridViewAdapter(this);
+        mRecyclerView.setAdapter(mAdapter);
+
 		ViewGroup viewGroup = (ViewGroup) view;
 
 		view.setBackgroundColor(getResources().getColor(R.color.grey));
-
-		// We need to create a PullToRefreshLayout manually
-		mPullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
-
-		// We can now setup the PullToRefreshLayout
-		ActionBarPullToRefresh.from(getActivity())
-			.insertLayoutInto(viewGroup)
-			.theseChildrenArePullable(getGridView(), getGridView().getEmptyView())
-			.listener(new uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener() {
-				@Override
-				public void onRefreshStarted(View view) {
-					refresh();
-				}
-			})
-			.setup(mPullToRefreshLayout);
-
-		mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View v,
-									int position, long id) {
-				onListItemClick(null, v, position, id);
-			}
-		});
 	}
 
 	@Override
 	public void onDestroyView()
 	{
-		mPullToRefreshLayout.setRefreshComplete();
 		super.onDestroyView();
 	}
 
@@ -325,7 +304,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 	public void onResume()
 	{
 		super.onResume();
-		contentList.clear();
 		refresh();
 	}
 
@@ -368,9 +346,8 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 					@Override
 					public void run() {
 						try {
-							mPullToRefreshLayout.setRefreshComplete();
-							//redraw gridView
-							mGridView.invalidateViews();
+                            //TODO: manual pull to refresh
+							mAdapter.notifyDataSetChanged();
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -383,12 +360,10 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 
 	public class ContentCallback extends RefreshCallback
 	{
-		private ArrayAdapter<DIDLObjectDisplay> contentList;
 		private ArrayList<DIDLObjectDisplay> content;
 
-		public ContentCallback(ArrayAdapter<DIDLObjectDisplay> contentList)
+		public ContentCallback()
 		{
-			this.contentList = contentList;
 			this.content = new ArrayList<>();
 		}
 
@@ -405,10 +380,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 					@Override
 					public void run() {
 						try {
-							// Empty the list
-							contentList.clear();
-							// Fill the list
-							contentList.addAll(content);
+							mAdapter.updateDataset(content);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -421,7 +393,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 	}
 
 	public void setEmptyText(CharSequence text) {
-		((TextView)getGridView().getEmptyView()).setText(text);
+		//TODO: no empty text
 	}
 
 	public synchronized void refresh()
@@ -436,7 +408,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 				@Override
 				public void run() {
 					try {
-						mPullToRefreshLayout.setRefreshing(true);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -468,7 +439,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 				list.add(new DIDLObjectDisplay(new DIDLDevice(upnpDevice)));
 
 			try {
-				ContentCallback cc = new ContentCallback(contentList);
+				ContentCallback cc = new ContentCallback();
 				cc.setContent(list);
 				cc.call();
 			} catch (Exception e){e.printStackTrace();}
@@ -493,7 +464,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 			tree = new LinkedList<String>();
 
 			Log.i(TAG, "Browse root of a new device");
-			contentDirectoryCommand.browse("0", null, new ContentCallback(contentList));
+			contentDirectoryCommand.browse("0", null, new ContentCallback());
 		}
 		else
 		{
@@ -501,20 +472,18 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 			{
 				String parentID = (tree.size() > 0) ? tree.getLast() : null;
 				Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
-				contentDirectoryCommand.browse(currentID, parentID, new ContentCallback(contentList));
+				contentDirectoryCommand.browse(currentID, parentID, new ContentCallback());
 			}
 			else
 			{
 				Log.i(TAG, "Browse root");
-				contentDirectoryCommand.browse("0", null, new ContentCallback(contentList));
+				contentDirectoryCommand.browse("0", null, new ContentCallback());
 			}
 		}
 	}
 
-	public void onListItemClick(ListView l, View v, int position, long id)
+	public void onListItemClick(IDIDLObject didl)
 	{
-		IDIDLObject didl = contentList.getItem(position).getDIDLObject();
-
 		try {
 			if(didl instanceof DIDLDevice)
 			{
