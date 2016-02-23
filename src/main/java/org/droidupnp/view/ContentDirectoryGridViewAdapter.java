@@ -53,6 +53,12 @@ public class ContentDirectoryGridViewAdapter extends RecyclerView.Adapter<Conten
         notifyDataSetChanged();
     };
 
+    public void addDataset(ArrayList<DIDLObjectDisplay> content) {
+        int length = mContent.size();
+        mContent.addAll(content);
+        notifyItemInserted(length);
+    }
+
 
     // Create new views (invoked by the layout manager)
     @Override

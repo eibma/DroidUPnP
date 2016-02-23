@@ -75,7 +75,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 
 	private RecyclerView mRecyclerView;
     private ContentDirectoryGridViewAdapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
+    private LinearLayoutManager mLayoutManager;
 
 //	private GridView mGridView;
 	private TextView mEmptyView;
@@ -176,6 +176,9 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 		}
 	}
 
+    private boolean loading = true;
+    int pastVisiblesItems, visibleItemCount, totalItemCount;
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState)
 	{
@@ -207,6 +210,35 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 			device = Main.upnpServiceController.getSelectedContentDirectory();
 			contentDirectoryCommand = Main.factory.createContentDirectoryCommand();
 		}
+
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if(dy > 0) //check for scroll down
+                {
+                    visibleItemCount = mLayoutManager.getChildCount();
+                    totalItemCount = mLayoutManager.getItemCount();
+                    pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
+
+                    if (loading)
+                    {
+                        if ( (visibleItemCount + pastVisiblesItems) >= totalItemCount)
+                        {
+                            loading = false;
+                            Log.v("...", "Last Item Wow !");
+
+                            if (tree != null && tree.size() > 0)
+                            {
+                                String parentID = (tree.size() > 0) ? tree.getLast() : null;
+                                Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
+                                contentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
+                            }
+                            //Do pagination.. i.e. fetch new data
+                        }
+                    }
+                }
+            }
+        });
 
 //		mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 //			@Override
@@ -358,24 +390,44 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 		}
 	}
 
-	public class ContentCallback extends RefreshCallback
-	{
-		private ArrayList<DIDLObjectDisplay> content;
+    public void search() {
+        contentDirectoryCommand.search("Gorillaz", null, new ContentCallback());
+    }
 
-		public ContentCallback()
-		{
+    public class AdditionalContentCallback extends ContentCallback {
+        public Void call() throws java.lang.Exception {
+            final Activity a = getActivity();
+            if (a != null) {
+                a.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            mAdapter.addDataset(content);
+                            loading = true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+            return null;
+        }
+    }
+
+	public class ContentCallback extends RefreshCallback {
+		protected ArrayList<DIDLObjectDisplay> content;
+
+		public ContentCallback() {
 			this.content = new ArrayList<>();
 		}
 
-		public void setContent(ArrayList<DIDLObjectDisplay> content)
-		{
+		public void setContent(ArrayList<DIDLObjectDisplay> content) {
 			this.content = content;
 		}
 
-		public Void call() throws java.lang.Exception
-		{
+		public Void call() throws java.lang.Exception {
 			final Activity a = getActivity();
-			if(a!=null) {
+			if (a != null) {
 				a.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
@@ -387,8 +439,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 					}
 				});
 			}
-			// Refresh
-			return super.call();
+			return null;
 		}
 	}
 
