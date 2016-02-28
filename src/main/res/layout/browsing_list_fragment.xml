@@ -24,18 +24,9 @@
 	android:paddingLeft="8dp"
 	android:paddingRight="8dp">
 
-	<ListView android:id="@id/android:list"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:layout_weight="1"
-		android:drawSelectorOnTop="false"/>
-
-	<TextView android:id="@id/android:empty"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:text="@string/device_list_empty"
-		android:textAlignment="center"
-		android:textSize="15sp"
-		android:paddingTop="20dp"/>
+	<android.support.v7.widget.RecyclerView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/gridView"/>
 
 </LinearLayout>
