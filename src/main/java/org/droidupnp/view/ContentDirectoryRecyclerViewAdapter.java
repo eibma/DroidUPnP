@@ -27,8 +27,8 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     private LruCache<String, Bitmap> mMemoryCache;
 
     private static final int IMAGE_FADE_ANIMATION_DURATION = 400;
-    private static final float MAX_CACHE_SIZE = 1.0f/8.0f;
-    private static final String TAG ="ContDirGridViewAdp";
+    private static final float MAX_CACHE_SIZE = 1.0f / 8.0f;
+    private static final String TAG = "ContDirGridViewAdp";
 
     private void initCache() {
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
@@ -49,7 +49,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         // each data item is just a string in this case
         public View mView;
 
@@ -88,12 +88,14 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     public void updateDataset(ArrayList<DIDLObjectDisplay> content) {
         mContent = content;
         notifyDataSetChanged();
-    };
+    }
+
+    ;
 
     // Create new views (invoked by the layout manager)
     @Override
     public ContentDirectoryRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                   int viewType) {
+                                                                             int viewType) {
         // create a new view
         View v;//= (//new TextView(parent.getContext());
 
@@ -112,22 +114,21 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         IDIDLObject obje = mContent.get(position).getDIDLObject();
 
         holder.mView.setSelected(false);
-        TextView text1 = (TextView)holder.mView.findViewById(org.droidupnp.R.id.text1);
-        TextView text2 = (TextView)holder.mView.findViewById(org.droidupnp.R.id.text2);
-        TextView text3 = (TextView)holder.mView.findViewById(org.droidupnp.R.id.text3);
-        ImageView imageView= (ImageView)holder.mView.findViewById(org.droidupnp.R.id.icon);
+        TextView text1 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text1);
+        TextView text2 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text2);
+        TextView text3 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text3);
+        ImageView imageView = (ImageView) holder.mView.findViewById(org.droidupnp.R.id.icon);
 
-        if(obje.getIcon() instanceof  Integer)
+        if (obje.getIcon() instanceof Integer)
             imageView.setImageResource((Integer) obje.getIcon());
-        else if(obje.getIcon() instanceof URI) {
+        else if (obje.getIcon() instanceof URI) {
             imageView.setTag(obje.getIcon().toString());
             new DownloadImageTask(imageView, obje.getIcon().toString()).execute();
-        }
-        else
+        } else
             imageView.setImageResource(android.R.color.transparent);
 
         text1.setText(obje.getTitle());
-        text2.setText((obje.getDescription()!=null) ? obje.getDescription() : "");
+        text2.setText((obje.getDescription() != null) ? obje.getDescription() : "");
         text3.setText(obje.getCount());
     }
 
