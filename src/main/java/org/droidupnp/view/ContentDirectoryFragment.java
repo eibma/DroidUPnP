@@ -19,8 +19,6 @@
 
 package org.droidupnp.view;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,33 +43,19 @@ import org.droidupnp.model.upnp.didl.IDIDLParentContainer;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
-import android.util.LruCache;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.support.v7.widget.RecyclerView;
-
-
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import android.widget.Toast;
 
 public class ContentDirectoryFragment extends Fragment implements Observer
 {
@@ -81,13 +65,11 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 	private String currentID = null;
 	private IUpnpDevice device;
 
-	private LruCache<String, Bitmap> mMemoryCache;
 
 	private RecyclerView mRecyclerView;
-    private ContentDirectoryGridViewAdapter mAdapter;
+    private ContentDirectoryRecyclerViewAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-//	private GridView mGridView;
 	private TextView mEmptyView;
 	private IContentDirectoryCommand contentDirectoryCommand;
 
@@ -95,8 +77,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 	static final String STATE_TREE = "tree";
 	static final String STATE_CURRENT = "current";
 
-	static final int IMAGE_FADE_ANIMATION_DURATION = 400;
-	static final float MAX_CACHE_SIZE = 1.0f/8.0f;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -108,25 +88,8 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		initCache();
 		// Inflate the layout for this fragment
 		return inflater.inflate(R.layout.browsing_list_fragment, container, false);
-	}
-
-	private void initCache() {
-		final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-
-		// Use 1/8th of the available memory for this memory cache.
-		final int cacheSize = (int) (maxMemory * MAX_CACHE_SIZE);
-
-		mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
-			@Override
-			protected int sizeOf(String key, Bitmap bitmap) {
-				// The cache size will be measured in kilobytes rather than
-				// number of items.
-				return bitmap.getByteCount() / 1024;
-			}
-		};
 	}
 
 	/** This update the search visibility depending on current content directory capabilities */
@@ -170,118 +133,15 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 		}
 	}
 
-	public class CustomAdapter extends ArrayAdapter<DIDLObjectDisplay>
-	{
-		private final int layout;
-		private LayoutInflater inflater;
-
-		public CustomAdapter(Context context) {
-			super(context, 0);
-			this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			this.layout = R.layout.browsing_list_item;
-		}
-
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent)
-		{
-			if (convertView == null)
-				convertView = inflater.inflate(layout, null);
-
-			// Item
-			final DIDLObjectDisplay entry = getItem(position);
-
-			ImageView imageView = (ImageView) convertView.findViewById(R.id.icon);
-			if(entry.getIcon() instanceof  Integer)
-				imageView.setImageResource((Integer) entry.getIcon());
-			else if(entry.getIcon() instanceof URI) {
-				imageView.setTag(entry.getIcon().toString());
-				new DownloadImageTask(imageView, entry.getIcon().toString()).execute();
-			}
-			else
-				imageView.setImageResource(android.R.color.transparent);
-
-			TextView text1 = (TextView) convertView.findViewById(R.id.text1);
-			text1.setText(entry.getTitle());
-
-			TextView text2 = (TextView) convertView.findViewById(R.id.text2);
-			text2.setText((entry.getDescription()!=null) ? entry.getDescription() : "");
-
-			TextView text3 = (TextView) convertView.findViewById(R.id.text3);
-			text3.setText(entry.getCount());
-
-			return convertView;
-		}
-	}
-
-	public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
-		if (getBitmapFromMemCache(key) == null) {
-			mMemoryCache.put(key, bitmap);
-		}
-	}
-
-	public Bitmap getBitmapFromMemCache(String key) {
-		return mMemoryCache.get(key);
-	}
-
-	private class DownloadImageTask extends AsyncTask<Void, Void, Bitmap> {
-		ImageView imageView;
-		String url;
-
-		public DownloadImageTask(ImageView imageView, String url) {
-			this.imageView = imageView;
-			this.url = url;
-			imageView.setImageResource(android.R.color.transparent);
-		}
-
-		@Override
-		protected Bitmap doInBackground(Void... voids) {
-			try {
-				Bitmap b = getBitmapFromMemCache(url);
-
-				if (b != null) {
-					return b;
-				}
-
-				b = BitmapFactory.decodeStream(new java.net.URL(url).openStream());
-				addBitmapToMemoryCache(url, b);
-				return b;
-			} catch (IOException e) {
-				Log.e(TAG, "IO Error during image fetch: "+e.getMessage());
-				return null;
-			}
-		}
-
-		@Override
-		protected void onPostExecute(Bitmap result) {
-			if (result != null && imageView.getTag().equals(url)) {
-				imageView.setImageBitmap(result);
-
-				Animation a = new AlphaAnimation(0.00f, 1.00f);
-				a.setDuration(IMAGE_FADE_ANIMATION_DURATION);
-				a.setAnimationListener(new Animation.AnimationListener() {
-
-					public void onAnimationStart(Animation animation) {
-					}
-
-					public void onAnimationRepeat(Animation animation) {
-					}
-
-					public void onAnimationEnd(Animation animation) {
-						imageView.setVisibility(View.VISIBLE);
-					}
-				});
-
-				imageView.startAnimation(a);
-			}
-		}
-	}
-
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState)
 	{
 		super.onActivityCreated(savedInstanceState);
 
 		mRecyclerView.setAdapter(mAdapter);
+		mRecyclerView.setFocusable(true);
+		mRecyclerView.setClickable(true);
+		mRecyclerView.setFocusableInTouchMode(true);
 
 		deviceObserver = new DeviceObserver(this);
 		Main.upnpServiceController.getContentDirectoryDiscovery().addObserver(deviceObserver);
@@ -308,36 +168,31 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 			contentDirectoryCommand = Main.factory.createContentDirectoryCommand();
 		}
 
-//		mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//			@Override
-//			public boolean onItemLongClick(AdapterView<?> adapterView, View v, int position, long id) {
-//				Log.v(TAG, "On long-click event");
-//
-//				IDIDLObject didl = contentList.getItem(position).getDIDLObject();
-//
-//				if (didl instanceof IDIDLItem) {
-//					IDIDLItem ididlItem = (IDIDLItem) didl;
-//					final Activity a = getActivity();
-//					final Intent intent = new Intent(Intent.ACTION_VIEW);
-//
-//					Uri uri = Uri.parse(ididlItem.getURI());
-//					intent.setDataAndType(uri, didl.getDataType());
-//
-//					try {
-//						a.startActivity(intent);
-//					} catch (ActivityNotFoundException ex) {
-//						Toast.makeText(getActivity(), R.string.failed_action, Toast.LENGTH_SHORT).show();
-//					}
-//				} else {
-//					Toast.makeText(getActivity(), R.string.no_action_available, Toast.LENGTH_SHORT).show();
-//				}
-//
-//				return true;
-//			}
-//		});
-
 		Log.d(TAG, "Force refresh");
 		refresh();
+	}
+
+	public boolean onItemLongClick(IDIDLObject didl) {
+		Log.v(TAG, "On long-click event");
+
+		if (didl instanceof IDIDLItem) {
+			IDIDLItem ididlItem = (IDIDLItem) didl;
+			final Activity a = getActivity();
+			final Intent intent = new Intent(Intent.ACTION_VIEW);
+
+			Uri uri = Uri.parse(ididlItem.getURI());
+			intent.setDataAndType(uri, didl.getDataType());
+
+			try {
+				a.startActivity(intent);
+			} catch (ActivityNotFoundException ex) {
+				Toast.makeText(getActivity(), R.string.failed_action, Toast.LENGTH_SHORT).show();
+			}
+		} else {
+			Toast.makeText(getActivity(), R.string.no_action_available, Toast.LENGTH_SHORT).show();
+		}
+
+		return true;
 	}
 
 	@Override
@@ -361,7 +216,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new ContentDirectoryGridViewAdapter(this);
+        mAdapter = new ContentDirectoryRecyclerViewAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
 
 		ViewGroup viewGroup = (ViewGroup) view;
@@ -652,7 +507,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer
 			// Renderer available, go for it
 			launchURIRenderer(uri);
 		}
-
 	}
 
 	private void launchURIRenderer(IDIDLItem uri)

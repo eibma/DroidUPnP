@@ -20,7 +20,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
 	android:layout_height="?android:attr/listPreferredItemHeight"
-	android:background="?android:attr/activatedBackgroundIndicator"
+	android:background="?android:attr/listChoiceBackgroundIndicator"
 	android:textAppearance="?android:attr/textAppearanceListItemSmall"
 	android:id="@+id/custom_list_item"
 	android:padding="6dip" >
@@ -59,6 +59,7 @@
 		android:layout_alignParentBottom="false"
 		android:layout_below="@+id/text1"
 		android:layout_toRightOf="@id/icon"
+        android:layout_toStartOf="@+id/icon"
 		android:layout_toEndOf="@id/icon"
 		android:ellipsize="marquee"
 		android:singleLine="true"
@@ -66,6 +67,8 @@
 		style="@style/browsingItemSubtitle"
 		android:layout_alignParentEnd="false"
 		android:layout_alignParentStart="false"
+		android:layout_alignParentLeft="false"
+		android:layout_alignParentRight="false"
 		android:layout_toLeftOf="@+id/text3"/>
 
 	<TextView
@@ -80,8 +83,8 @@
 		android:layout_marginRight="5dip"
 		android:layout_marginEnd="5dip"
 		style="@style/browsingItemCount"
-		android:layout_toEndOf="@id/custom_list_item"
 		android:paddingLeft="2dip"
-		android:layout_below="@+id/text1"/>
+		android:layout_below="@+id/text1"
+        android:paddingRight="2dip"/>
 
 </RelativeLayout>
