@@ -1,5 +1,6 @@
 package org.droidupnp.view;
 
+import android.app.ActionBar;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -25,6 +26,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     ArrayList<DIDLObjectDisplay> mContent;
     ContentDirectoryFragment mFragment;
     private LruCache<String, Bitmap> mMemoryCache;
+    private boolean mGridMode = false;
 
     private static final int IMAGE_FADE_ANIMATION_DURATION = 400;
     private static final float MAX_CACHE_SIZE = 1.0f / 8.0f;
@@ -79,9 +81,10 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public ContentDirectoryRecyclerViewAdapter(ContentDirectoryFragment fragment) {
+    public ContentDirectoryRecyclerViewAdapter(ContentDirectoryFragment fragment, boolean gridMode) {
         mContent = new ArrayList<>();
         mFragment = fragment;
+        mGridMode = gridMode;
         initCache();
     }
 
@@ -100,7 +103,11 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         View v;//= (//new TextView(parent.getContext());
 
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        v = inflater.inflate(org.droidupnp.R.layout.browsing_list_item, parent, false);
+        if(mGridMode) {
+            v = inflater.inflate(org.droidupnp.R.layout.browsing_grid_item, parent, false);
+        } else {
+            v = inflater.inflate(org.droidupnp.R.layout.browsing_list_item, parent, false);
+        }
 
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -119,8 +126,10 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         TextView text3 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text3);
         ImageView imageView = (ImageView) holder.mView.findViewById(org.droidupnp.R.id.icon);
 
-        if (obje.getIcon() instanceof Integer)
+        if (obje.getIcon() instanceof Integer) {
             imageView.setImageResource((Integer) obje.getIcon());
+            imageView.setScaleType(ImageView.ScaleType.CENTER);
+        }
         else if (obje.getIcon() instanceof URI) {
             imageView.setTag(obje.getIcon().toString());
             new DownloadImageTask(imageView, obje.getIcon().toString()).execute();
@@ -169,6 +178,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
                 }
 
                 b = BitmapFactory.decodeStream(new java.net.URL(url).openStream());
+                b = Bitmap.createScaledBitmap(b, 200, 200, true);
                 addBitmapToMemoryCache(url, b);
                 return b;
             } catch (IOException e) {
