@@ -206,9 +206,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         mRecyclerView = (RecyclerView) this.getView().findViewById(R.id.gridView);
         mRecyclerView.setHasFixedSize(true);
 
-        // use a linear layout manager
-        //  mLayoutManager = new LinearLayoutManager(this.getView().getContext());
-
         final ViewTreeObserver observer = view.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             public void onGlobalLayout() {
@@ -500,6 +497,17 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                     refresh();
                 }
             });
+        }
+    }
+
+    public void setGridView(boolean gridView) {
+        mAdapter.setGridMode(gridView);
+        if(gridView) {
+            mLayoutManager = new GridLayoutManager(this.getView().getContext(), this.getView().getWidth() / 250);
+            mRecyclerView.setLayoutManager(mLayoutManager);
+        } else {
+            mLayoutManager = new LinearLayoutManager(this.getView().getContext());
+            mRecyclerView.setLayoutManager(mLayoutManager);
         }
     }
 }

@@ -32,6 +32,10 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     private static final float MAX_CACHE_SIZE = 1.0f / 8.0f;
     private static final String TAG = "ContDirGridViewAdp";
 
+    public void setGridMode(boolean gridMode) {
+        mGridMode = gridMode;
+    }
+
     private void initCache() {
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
 

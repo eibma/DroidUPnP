@@ -166,6 +166,12 @@ public class Main extends AppCompatActivity
 			case R.id.menu_quit:
 				finish();
 				break;
+			case R.id.menu_list:
+				mContentDirectoryFragment.setGridView(false);
+				break;
+			case R.id.menu_grid:
+				mContentDirectoryFragment.setGridView(true);
+				break;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
