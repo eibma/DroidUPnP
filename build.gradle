@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.0.+'
+        classpath 'com.android.tools.build:gradle:2.2.3'
     }
 }
 apply plugin: 'com.android.application'
@@ -18,8 +18,10 @@ repositories {
 
 dependencies {
     // Android support
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:recyclerview-v7:+'
+    compile ('com.android.support:appcompat-v7:25.1.0')
+    compile ( 'com.android.support:recyclerview-v7:+'){
+        exclude module: 'support-v4'
+    }
 
     // Cling
     compile group: 'org.fourthline.cling', name: 'cling-core', version:'2.0.1'
@@ -30,7 +32,9 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version:'1.7.5'
 
     // Pull To Refresh
-    compile 'com.github.chrisbanes.actionbarpulltorefresh:library:+'
+    compile ('com.github.chrisbanes.actionbarpulltorefresh:library:+'){
+        exclude module: 'support-v4'
+    }
 
     compile('de.psdev.licensesdialog:licensesdialog:1.6.0') {
         exclude module: 'support-v4'
@@ -38,8 +42,8 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.1"
 
     defaultConfig {
         minSdkVersion 14
