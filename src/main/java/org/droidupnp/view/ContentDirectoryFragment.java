@@ -45,13 +45,16 @@ import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import android.support.v7.widget.RecyclerView;
@@ -228,23 +231,33 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         mEmptyView = new TextView(view.getContext());
         mRecyclerView = (RecyclerView) this.getView().findViewById(R.id.gridView);
         mRecyclerView.setHasFixedSize(true);
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(this.getView().getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        final ViewTreeObserver observer = view.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            public void onGlobalLayout() {
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                mLayoutManager = new GridLayoutManager(view.getContext(), view.getWidth() / 250);
+                mRecyclerView.setLayoutManager(mLayoutManager);
+
+            }
+        });
 
         // specify an adapter (see also next example)
-        mAdapter = new ContentDirectoryRecyclerViewAdapter(this);
+        mAdapter = new ContentDirectoryRecyclerViewAdapter(this, true);
         mRecyclerView.setAdapter(mAdapter);
 
-        ViewGroup viewGroup = (ViewGroup) view;
-
         view.setBackgroundColor(getResources().getColor(R.color.grey));
+    }
+
+    private RecyclerView.LayoutManager createLayoutManager() {
+        return null;
     }
 
     @Override
@@ -535,6 +548,17 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                     refresh();
                 }
             });
+        }
+    }
+
+    public void setGridView(boolean gridView) {
+        mAdapter.setGridMode(gridView);
+        if(gridView) {
+            mLayoutManager = new GridLayoutManager(this.getView().getContext(), this.getView().getWidth() / 250);
+            mRecyclerView.setLayoutManager(mLayoutManager);
+        } else {
+            mLayoutManager = new LinearLayoutManager(this.getView().getContext());
+            mRecyclerView.setLayoutManager(mLayoutManager);
         }
     }
 }

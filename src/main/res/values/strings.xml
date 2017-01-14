@@ -36,6 +36,8 @@
 	<string name="menu_refresh">Refresh</string>
 	<string name="menu_quit">Quit</string>
 	<string name="menu_search">Search</string>
+	<string name="menu_list">List View</string>
+	<string name="menu_grid">Grid View</string>
 
 	<!-- Option -->
 	<string name="pref_contentdirectory_title">Content Directory</string>
