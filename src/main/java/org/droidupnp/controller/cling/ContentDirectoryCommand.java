@@ -31,10 +31,12 @@ import org.droidupnp.model.upnp.IContentDirectoryCommand;
 import org.droidupnp.view.ContentDirectoryFragment;
 import org.droidupnp.view.DIDLObjectDisplay;
 import org.fourthline.cling.controlpoint.ControlPoint;
+import org.fourthline.cling.model.action.ActionArgumentValue;
 import org.fourthline.cling.model.action.ActionInvocation;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.meta.Service;
 import org.fourthline.cling.model.types.UDAServiceType;
+import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.contentdirectory.callback.Browse;
 import org.fourthline.cling.support.contentdirectory.callback.Search;
 import org.fourthline.cling.support.model.BrowseFlag;
@@ -117,18 +119,68 @@ public class ContentDirectoryCommand implements IContentDirectoryCommand
 		return list;
 	}
 
+    private long numEntries;
+
+    public void continueBrowse(String directoryID, final String parent, final ContentDirectoryFragment.ContentCallback callback)
+    {
+        if (getContentDirectoryService() == null)
+            return;
+
+        controlPoint.execute(new Browse(getContentDirectoryService(), directoryID, BrowseFlag.DIRECT_CHILDREN, "*", numEntries,
+                null, new SortCriterion(true, "dc:title"))
+        {
+            @Override
+            public void received(ActionInvocation actionInvocation, final DIDLContent didl)
+            {
+                ActionArgumentValue aav = (ActionArgumentValue) actionInvocation.getOutputMap().get("NumberReturned");
+                numEntries += ((UnsignedIntegerFourBytes)aav.getValue()).getValue();
+                callBack(didl);
+            }
+
+            @Override
+            public void updateStatus(Status status)
+            {
+                Log.v(TAG, "updateStatus ! ");
+            }
+
+            @Override
+            public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg)
+            {
+                Log.w(TAG, "Fail to browse ! " + defaultMsg);
+                callBack(null);
+            }
+
+            public void callBack(final DIDLContent didl)
+            {
+                if(callback!=null)
+                {
+                    try {
+                        if(didl!=null)
+                            callback.setContent(buildContentList(null, didl));
+                        callback.call();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
 	@Override
 	public void browse(String directoryID, final String parent, final ContentDirectoryFragment.ContentCallback callback)
 	{
 		if (getContentDirectoryService() == null)
 			return;
 
+        numEntries = 0;
 		controlPoint.execute(new Browse(getContentDirectoryService(), directoryID, BrowseFlag.DIRECT_CHILDREN, "*", 0,
 				null, new SortCriterion(true, "dc:title"))
 		{
 			@Override
 			public void received(ActionInvocation actionInvocation, final DIDLContent didl)
 			{
+				ActionArgumentValue aav = (ActionArgumentValue) actionInvocation.getOutputMap().get("NumberReturned");
+                numEntries = ((UnsignedIntegerFourBytes)aav.getValue()).getValue();
 				callBack(didl);
 			}
 

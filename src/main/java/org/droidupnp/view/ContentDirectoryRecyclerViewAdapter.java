@@ -90,7 +90,10 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         notifyDataSetChanged();
     }
 
-    ;
+    public void addDataset(ArrayList<DIDLObjectDisplay> content) {
+        mContent.addAll(content);
+        notifyDataSetChanged();
+    }
 
     // Create new views (invoked by the layout manager)
     @Override
