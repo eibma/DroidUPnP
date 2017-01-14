@@ -107,7 +107,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     public ContentDirectoryRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                                              int viewType) {
         // create a new view
-        View v;//= (//new TextView(parent.getContext());
+        View v;
 
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         if(mGridMode) {
@@ -120,9 +120,15 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         return vh;
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return mGridMode ? 1 : 0;
+    }
+
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         IDIDLObject obje = mContent.get(position).getDIDLObject();
@@ -153,7 +159,6 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     public int getItemCount() {
         return mContent.size();
     }
-
 
     public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
         if (getBitmapFromMemCache(key) == null) {

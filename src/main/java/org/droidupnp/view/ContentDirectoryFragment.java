@@ -256,10 +256,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         view.setBackgroundColor(getResources().getColor(R.color.grey));
     }
 
-    private RecyclerView.LayoutManager createLayoutManager() {
-        return null;
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

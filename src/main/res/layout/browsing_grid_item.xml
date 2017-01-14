@@ -42,7 +42,7 @@
 
         <ImageView
             android:id="@+id/icon"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentTop="true"
@@ -55,7 +55,7 @@
         <TextView
             android:id="@+id/text1"
             style="@style/browsingItemTitle"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="false"
@@ -69,7 +69,7 @@
         <TextView
             android:id="@+id/text2"
             style="@style/browsingItemSubtitle"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="false"
             android:layout_alignParentEnd="false"
@@ -85,7 +85,7 @@
         <TextView
             android:id="@+id/text3"
             style="@style/browsingItemCount"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/text2"
             android:layout_alignParentBottom="false"
