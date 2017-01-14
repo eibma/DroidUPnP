@@ -92,7 +92,9 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         return inflater.inflate(R.layout.browsing_list_fragment, container, false);
     }
 
-    /** This update the search visibility depending on current content directory capabilities */
+    /**
+     * This update the search visibility depending on current content directory capabilities
+     */
     public void updateSearchVisibility() {
         final Activity a = getActivity();
         if (a != null) {
@@ -170,21 +172,18 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if(dy > 0) //check for scroll down
+                if (dy > 0) //check for scroll down
                 {
                     visibleItemCount = mLayoutManager.getChildCount();
                     totalItemCount = mLayoutManager.getItemCount();
                     pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
 
-                    if (loading)
-                    {
-                        if ( (visibleItemCount + pastVisiblesItems) >= totalItemCount)
-                        {
+                    if (loading) {
+                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
                             loading = false;
                             Log.v("...", "Last Item Wow !");
 
-                            if (tree != null && tree.size() > 0)
-                            {
+                            if (tree != null && tree.size() > 0) {
                                 String parentID = (tree.size() > 0) ? tree.getLast() : null;
                                 Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
                                 contentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
@@ -353,20 +352,20 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         }
     }
 
-	public class ContentCallback extends RefreshCallback {
-		protected ArrayList<DIDLObjectDisplay> content;
+    public class ContentCallback extends RefreshCallback {
+        protected ArrayList<DIDLObjectDisplay> content;
 
-		public ContentCallback() {
+        public ContentCallback() {
             this.content = new ArrayList<>();
         }
 
-		public void setContent(ArrayList<DIDLObjectDisplay> content) {
+        public void setContent(ArrayList<DIDLObjectDisplay> content) {
             this.content = content;
         }
 
-		public Void call() throws java.lang.Exception {
+        public Void call() throws java.lang.Exception {
             final Activity a = getActivity();
-			if (a != null) {
+            if (a != null) {
                 a.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -378,7 +377,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                     }
                 });
             }
-			return null;
+            return null;
         }
     }
 
@@ -549,7 +548,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
 
     public void setGridView(boolean gridView) {
         mAdapter.setGridMode(gridView);
-        if(gridView) {
+        if (gridView) {
             mLayoutManager = new GridLayoutManager(this.getView().getContext(), this.getView().getWidth() / 250);
             mRecyclerView.setLayoutManager(mLayoutManager);
         } else {

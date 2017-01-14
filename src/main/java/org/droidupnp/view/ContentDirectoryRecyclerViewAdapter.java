@@ -110,7 +110,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         View v;
 
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        if(mGridMode) {
+        if (mGridMode) {
             v = inflater.inflate(org.droidupnp.R.layout.browsing_grid_item, parent, false);
         } else {
             v = inflater.inflate(org.droidupnp.R.layout.browsing_list_item, parent, false);
@@ -142,8 +142,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         if (obje.getIcon() instanceof Integer) {
             imageView.setImageResource((Integer) obje.getIcon());
             imageView.setScaleType(ImageView.ScaleType.CENTER);
-        }
-        else if (obje.getIcon() instanceof URI) {
+        } else if (obje.getIcon() instanceof URI) {
             imageView.setTag(obje.getIcon().toString());
             new DownloadImageTask(imageView, obje.getIcon().toString()).execute();
         } else
