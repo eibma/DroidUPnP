@@ -57,7 +57,9 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         // each data item is just a string in this case
-        public View mView;
+        private View mView;
+
+        private DownloadImageTask mDownloadImageTask;
 
         public ViewHolder(View v) {
             super(v);
@@ -81,6 +83,22 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
             int position = getLayoutPosition();
             IDIDLObject ob = mContent.get(position).getDIDLObject();
             return mFragment.onItemLongClick(ob);
+        }
+
+        public View getView() {
+            return mView;
+        }
+
+        public void setView(View view) {
+            mView = view;
+        }
+
+        public DownloadImageTask getDownloadImageTask() {
+            return mDownloadImageTask;
+        }
+
+        public void setDownloadImageTask(DownloadImageTask downloadImageTask) {
+            mDownloadImageTask = downloadImageTask;
         }
     }
 
@@ -133,24 +151,36 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         // - replace the contents of the view with that element
         IDIDLObject obje = mContent.get(position).getDIDLObject();
 
-        holder.mView.setSelected(false);
-        TextView text1 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text1);
-        TextView text2 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text2);
-        TextView text3 = (TextView) holder.mView.findViewById(org.droidupnp.R.id.text3);
-        ImageView imageView = (ImageView) holder.mView.findViewById(org.droidupnp.R.id.icon);
+        holder.getView().setSelected(false);
+        TextView text1 = (TextView) holder.getView().findViewById(org.droidupnp.R.id.text1);
+        TextView text2 = (TextView) holder.getView().findViewById(org.droidupnp.R.id.text2);
+        TextView text3 = (TextView) holder.getView().findViewById(org.droidupnp.R.id.text3);
+        ImageView imageView = (ImageView) holder.getView().findViewById(org.droidupnp.R.id.icon);
 
         if (obje.getIcon() instanceof Integer) {
             imageView.setImageResource((Integer) obje.getIcon());
             imageView.setScaleType(ImageView.ScaleType.CENTER);
         } else if (obje.getIcon() instanceof URI) {
             imageView.setTag(obje.getIcon().toString());
-            new DownloadImageTask(imageView, obje.getIcon().toString()).execute();
+            DownloadImageTask downloadImageTask = new DownloadImageTask(imageView, obje.getIcon().toString());
+            downloadImageTask.execute();
+            holder.setDownloadImageTask(downloadImageTask);
         } else
             imageView.setImageResource(android.R.color.transparent);
 
         text1.setText(obje.getTitle());
         text2.setText((obje.getDescription() != null) ? obje.getDescription() : "");
         text3.setText(obje.getCount());
+    }
+
+    @Override
+    public void onViewRecycled(ViewHolder holder) {
+        super.onViewRecycled(holder);
+
+        // cancel image request if the view is recycled before the image loading has been completed
+        if(holder.getDownloadImageTask() != null) {
+            holder.getDownloadImageTask().cancel(true);
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)

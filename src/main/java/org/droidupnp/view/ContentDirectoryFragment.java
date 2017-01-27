@@ -45,17 +45,14 @@ import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.AdapterView;
 import android.widget.TextView;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
@@ -67,18 +64,21 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
     private String currentID = null;
     private IUpnpDevice device;
 
+    private boolean loading = true;
+    int pastVisiblesItems, visibleItemCount, totalItemCount;
 
     private RecyclerView mRecyclerView;
     private ContentDirectoryRecyclerViewAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
 
     private TextView mEmptyView;
-    private IContentDirectoryCommand contentDirectoryCommand;
+    private IContentDirectoryCommand mContentDirectoryCommand;
 
     static final String STATE_CONTENTDIRECTORY = "contentDirectory";
     static final String STATE_TREE = "tree";
     static final String STATE_CURRENT = "current";
 
+    private DeviceObserver deviceObserver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,7 +102,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                 @Override
                 public void run() {
                     try {
-                        Main.setSearchVisibility(contentDirectoryCommand != null && contentDirectoryCommand.isSearchAvailable());
+                        Main.setSearchVisibility(true);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -110,8 +110,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
             });
         }
     }
-
-    private DeviceObserver deviceObserver;
 
     public class DeviceObserver implements IDeviceDiscoveryObserver {
         ContentDirectoryFragment cdf;
@@ -132,9 +130,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                 cdf.update();
         }
     }
-
-    private boolean loading = true;
-    int pastVisiblesItems, visibleItemCount, totalItemCount;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -166,7 +161,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
             currentID = savedInstanceState.getString(STATE_CURRENT);
 
             device = Main.upnpServiceController.getSelectedContentDirectory();
-            contentDirectoryCommand = Main.factory.createContentDirectoryCommand();
+            mContentDirectoryCommand = Main.factory.createContentDirectoryCommand();
         }
 
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -186,7 +181,7 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                             if (tree != null && tree.size() > 0) {
                                 String parentID = (tree.size() > 0) ? tree.getLast() : null;
                                 Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
-                                contentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
+                                mContentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
                             }
                         }
                     }
@@ -435,10 +430,10 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         }
 
         Log.i(TAG, "device " + device + " device " + ((device != null) ? device.getDisplayString() : ""));
-        Log.i(TAG, "contentDirectoryCommand : " + contentDirectoryCommand);
+        Log.i(TAG, "mContentDirectoryCommand : " + mContentDirectoryCommand);
 
-        contentDirectoryCommand = Main.factory.createContentDirectoryCommand();
-        if (contentDirectoryCommand == null)
+        mContentDirectoryCommand = Main.factory.createContentDirectoryCommand();
+        if (mContentDirectoryCommand == null)
             return; // Can't do anything if upnp not ready
 
         if (device == null || !device.equals(Main.upnpServiceController.getSelectedContentDirectory())) {
@@ -450,15 +445,15 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
             tree = new LinkedList<String>();
 
             Log.i(TAG, "Browse root of a new device");
-            contentDirectoryCommand.browse("0", null, new ContentCallback());
+            mContentDirectoryCommand.browse("0", null, new ContentCallback());
         } else {
             if (tree != null && tree.size() > 0) {
                 String parentID = (tree.size() > 0) ? tree.getLast() : null;
                 Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
-                contentDirectoryCommand.browse(currentID, parentID, new ContentCallback());
+                mContentDirectoryCommand.browse(currentID, parentID, new ContentCallback());
             } else {
                 Log.i(TAG, "Browse root");
-                contentDirectoryCommand.browse("0", null, new ContentCallback());
+                mContentDirectoryCommand.browse("0", null, new ContentCallback());
             }
         }
     }
