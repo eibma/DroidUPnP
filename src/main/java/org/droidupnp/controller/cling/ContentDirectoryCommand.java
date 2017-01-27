@@ -60,6 +60,10 @@ public class ContentDirectoryCommand implements IContentDirectoryCommand
 
 	private final ControlPoint controlPoint;
 
+	private long mNumEntries;
+
+	private long mTotalMatches;
+
 	public ContentDirectoryCommand(ControlPoint controlPoint)
 	{
 		this.controlPoint = controlPoint;
@@ -119,21 +123,26 @@ public class ContentDirectoryCommand implements IContentDirectoryCommand
 		return list;
 	}
 
-    private long numEntries;
-
+	/**
+	 * Continue browsing the directory with the given directoryID starting at the latest received
+	 * entry. Calling will have no result if all available entries are already displayed
+     */
     public void continueBrowse(String directoryID, final String parent, final ContentDirectoryFragment.ContentCallback callback)
     {
-        if (getContentDirectoryService() == null)
-            return;
+        if (getContentDirectoryService() == null || mTotalMatches >= mNumEntries) {
+			return;
+		}
 
-        controlPoint.execute(new Browse(getContentDirectoryService(), directoryID, BrowseFlag.DIRECT_CHILDREN, "*", numEntries,
+        controlPoint.execute(new Browse(getContentDirectoryService(), directoryID, BrowseFlag.DIRECT_CHILDREN, "*", mNumEntries,
                 null, new SortCriterion(true, "dc:title"))
         {
             @Override
             public void received(ActionInvocation actionInvocation, final DIDLContent didl)
             {
                 ActionArgumentValue aav = (ActionArgumentValue) actionInvocation.getOutputMap().get("NumberReturned");
-                numEntries += ((UnsignedIntegerFourBytes)aav.getValue()).getValue();
+				ActionArgumentValue totalMatchesValue = (ActionArgumentValue) actionInvocation.getOutputMap().get("TotalMatches");
+				mTotalMatches = ((UnsignedIntegerFourBytes)totalMatchesValue.getValue()).getValue();
+				mNumEntries += ((UnsignedIntegerFourBytes)aav.getValue()).getValue();
                 callBack(didl);
             }
 
@@ -172,7 +181,9 @@ public class ContentDirectoryCommand implements IContentDirectoryCommand
 		if (getContentDirectoryService() == null)
 			return;
 
-        numEntries = 0;
+        mNumEntries = 0;
+		mTotalMatches = 0;
+
 		controlPoint.execute(new Browse(getContentDirectoryService(), directoryID, BrowseFlag.DIRECT_CHILDREN, "*", 0,
 				null, new SortCriterion(true, "dc:title"))
 		{
@@ -180,7 +191,9 @@ public class ContentDirectoryCommand implements IContentDirectoryCommand
 			public void received(ActionInvocation actionInvocation, final DIDLContent didl)
 			{
 				ActionArgumentValue aav = (ActionArgumentValue) actionInvocation.getOutputMap().get("NumberReturned");
-                numEntries = ((UnsignedIntegerFourBytes)aav.getValue()).getValue();
+				ActionArgumentValue totalMatchesValue = (ActionArgumentValue) actionInvocation.getOutputMap().get("TotalMatches");
+				mTotalMatches = ((UnsignedIntegerFourBytes)totalMatchesValue.getValue()).getValue();
+				mNumEntries += ((UnsignedIntegerFourBytes)aav.getValue()).getValue();
 				callBack(didl);
 			}
 

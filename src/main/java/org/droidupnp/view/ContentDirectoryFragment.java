@@ -188,7 +188,6 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
                                 Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
                                 contentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
                             }
-                            //Do pagination.. i.e. fetch new data
                         }
                     }
                 }
