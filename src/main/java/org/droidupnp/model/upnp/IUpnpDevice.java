@@ -21,42 +21,42 @@ package org.droidupnp.model.upnp;
 
 public interface IUpnpDevice {
 
-	public String getDisplayString();
+	String getDisplayString();
 
-	public String getFriendlyName();
+	String getFriendlyName();
 
-	public String getExtendedInformation();
+	String getExtendedInformation();
 
-	public String getManufacturer();
+	String getManufacturer();
 
-	public String getManufacturerURL();
+	String getManufacturerURL();
 
-	public String getModelName();
+	String getModelName();
 
-	public String getModelDesc();
+	String getModelDesc();
 
-	public String getModelNumber();
+	String getModelNumber();
 
-	public String getModelURL();
+	String getModelURL();
 
-	public String getXMLURL();
+	String getXMLURL();
 
-	public String getPresentationURL();
+	String getPresentationURL();
 
-	public String getSerialNumber();
+	String getSerialNumber();
 
-	public String getUDN();
+	String getUDN();
 
-	public boolean equals(IUpnpDevice otherDevice);
+	boolean equals(IUpnpDevice otherDevice);
 
-	public String getUID();
+	String getUID();
 
-	public boolean asService(String service);
+	boolean asService(String service);
 
-	public void printService();
+	void printService();
 
-	public boolean isFullyHydrated();
+	boolean isFullyHydrated();
 
 	@Override
-	public String toString();
+	String toString();
 }

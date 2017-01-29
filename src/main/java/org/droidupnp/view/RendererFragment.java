@@ -19,6 +19,9 @@
 
 package org.droidupnp.view;
 
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.Callable;
@@ -32,20 +35,23 @@ import org.droidupnp.model.upnp.IUpnpDevice;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class RendererFragment extends android.support.v4.app.Fragment implements Observer {
+public class RendererFragment extends Fragment implements Observer {
     private static final String TAG = "RendererFragment";
 
     private IUpnpDevice device;
@@ -53,20 +59,20 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
     private IRendererCommand rendererCommand;
 
     // NowPlaying Slide
-    private ImageView stopButton;
+    private ImageView mStopButton;
     private ImageView play_pauseButton;
-    private ImageView volumeButton;
+    private ImageView mVolumeButton;
 
     // Settings Slide
-    SeekBar progressBar;
-    SeekBar volume;
+    private SeekBar mProgressBar;
+    private SeekBar mVolume;
 
-    TextView duration;
-    boolean durationRemaining;
+    private TextView mDuration;
+    private boolean mDurationRemaining;
 
     // newInstance constructor for creating fragment with arguments
-    public static android.support.v4.app.Fragment newInstance(int page, String title) {
-        android.support.v4.app.Fragment fragmentFirst = new RendererFragment();
+    public static Fragment newInstance(int page, String title) {
+        Fragment fragmentFirst = new RendererFragment();
         Bundle args = new Bundle();
         args.putInt("someInt", page);
         args.putString("someTitle", title);
@@ -76,16 +82,13 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
 
     public RendererFragment() {
         super();
-        durationRemaining = true;
+        mDurationRemaining = true;
     }
 
     public void hide() {
         Activity a = getActivity();
         if (a == null)
             return;
-       // a.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-       // a.findViewById(R.id.separator).setVisibility(View.INVISIBLE);
-      //  getFragmentManager().beginTransaction().hide(this).commit();
     }
 
     public void show() {
@@ -143,7 +146,7 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.renderer_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_renderer, container, false);
     }
 
     public void startControlPoint() {
@@ -206,19 +209,20 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
                     try {
                         show();
 
+                        RelativeLayout rendererBackground = (RelativeLayout) a.findViewById(R.id.renderer_background);
                         TextView title = (TextView) a.findViewById(R.id.title);
-                        TextView artist = (TextView) a.findViewById(R.id.subtitle);
+                        TextView artist = (TextView) a.findViewById(R.id.artist);
                         SeekBar seek = (SeekBar) a.findViewById(R.id.progressBar);
                         SeekBar volume = (SeekBar) a.findViewById(R.id.volume);
                         TextView durationElapse = (TextView) a.findViewById(R.id.trackDurationElapse);
 
-                        if (title == null || artist == null || seek == null || duration == null || durationElapse == null)
+                        if (title == null || artist == null || seek == null || mDuration == null || durationElapse == null)
                             return;
 
-                        if (durationRemaining)
-                            duration.setText(rendererState.getRemainingDuration());
+                        if (mDurationRemaining)
+                            mDuration.setText(rendererState.getRemainingDuration());
                         else
-                            duration.setText(rendererState.getDuration());
+                            mDuration.setText(rendererState.getDuration());
 
                         durationElapse.setText(rendererState.getPosition());
 
@@ -236,9 +240,9 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
                         }
 
                         if (rendererState.isMute())
-                            volumeButton.setImageResource(R.drawable.volume_mute);
+                            mVolumeButton.setImageResource(R.drawable.volume_mute);
                         else
-                            volumeButton.setImageResource(R.drawable.volume);
+                            mVolumeButton.setImageResource(R.drawable.volume);
 
                         volume.setProgress(rendererState.getVolume());
 
@@ -265,10 +269,10 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
     private void SetupButtons() {
         // Now_Playing Footer Buttons
         play_pauseButton = (ImageView) getActivity().findViewById(R.id.play_pauseButton);
-        volumeButton = (ImageView) getActivity().findViewById(R.id.volumeIcon);
-        stopButton = (ImageView) getActivity().findViewById(R.id.stopButton);
-        progressBar = (SeekBar) getActivity().findViewById(R.id.progressBar);
-        volume = (SeekBar) getActivity().findViewById(R.id.volume);
+        mVolumeButton = (ImageView) getActivity().findViewById(R.id.volumeIcon);
+        mStopButton = (ImageView) getActivity().findViewById(R.id.stopButton);
+        mProgressBar = (SeekBar) getActivity().findViewById(R.id.progressBar);
+        mVolume = (SeekBar) getActivity().findViewById(R.id.volume);
     }
 
     public abstract class ButtonCallback implements Callable<Void> {
@@ -339,11 +343,11 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
             if (rendererState == null)
                 return;
 
-            durationRemaining = !durationRemaining;
-            if (durationRemaining)
-                duration.setText(rendererState.getRemainingDuration());
+            mDurationRemaining = !mDurationRemaining;
+            if (mDurationRemaining)
+                mDuration.setText(rendererState.getRemainingDuration());
             else
-                duration.setText(rendererState.getDuration());
+                mDuration.setText(rendererState.getDuration());
         }
     }
 
@@ -361,8 +365,8 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
             });
         }
 
-        if (stopButton != null) {
-            stopButton.setOnClickListener(new OnClickListener() {
+        if (mStopButton != null) {
+            mStopButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     try {
@@ -374,8 +378,8 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
             });
         }
 
-        if (volumeButton != null) {
-            volumeButton.setOnClickListener(new OnClickListener() {
+        if (mVolumeButton != null) {
+            mVolumeButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     try {
@@ -387,8 +391,8 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
             });
         }
 
-        if (progressBar != null) {
-            progressBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+        if (mProgressBar != null) {
+            mProgressBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
@@ -420,12 +424,12 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
             });
         }
 
-        if (volume != null) {
-            volume.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+        if (mVolume != null) {
+            mVolume.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
-                    Toast.makeText(getActivity().getApplicationContext(), "Set volume to " + seekBar.getProgress(),
+                    Toast.makeText(getActivity().getApplicationContext(), "Set mVolume to " + seekBar.getProgress(),
                             Toast.LENGTH_SHORT).show();
 
                     if (rendererCommand != null)
@@ -442,9 +446,9 @@ public class RendererFragment extends android.support.v4.app.Fragment implements
             });
         }
 
-        duration = (TextView) getActivity().findViewById(R.id.trackDurationRemaining);
-        if (duration != null) {
-            duration.setOnClickListener(new OnClickListener() {
+        mDuration = (TextView) getActivity().findViewById(R.id.trackDurationRemaining);
+        if (mDuration != null) {
+            mDuration.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     try {
