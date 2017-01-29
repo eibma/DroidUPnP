@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import org.droidupnp.Main;
+import org.droidupnp.MainActivity;
 import org.droidupnp.R;
 import org.droidupnp.model.upnp.CallableRendererFilter;
 import org.droidupnp.model.upnp.IUpnpDevice;
@@ -24,7 +24,7 @@ public class RendererDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        final Collection<IUpnpDevice> upnpDevices = Main.upnpServiceController.getServiceListener()
+        final Collection<IUpnpDevice> upnpDevices = MainActivity.upnpServiceController.getServiceListener()
                 .getFilteredDeviceList(new CallableRendererFilter());
 
         ArrayList<DeviceDisplay> list = new ArrayList<DeviceDisplay>();
@@ -48,7 +48,7 @@ public class RendererDialog extends DialogFragment {
             builder.setTitle(R.string.selectRenderer).setAdapter(rendererList, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Main.upnpServiceController.setSelectedRenderer((IUpnpDevice) upnpDevices.toArray()[which]);
+                    MainActivity.upnpServiceController.setSelectedRenderer((IUpnpDevice) upnpDevices.toArray()[which]);
                     try {
                         if (callback != null)
                             callback.call();

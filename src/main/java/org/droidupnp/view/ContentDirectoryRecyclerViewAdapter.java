@@ -1,6 +1,5 @@
 package org.droidupnp.view;
 
-import android.app.ActionBar;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -178,7 +177,7 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
         super.onViewRecycled(holder);
 
         // cancel image request if the view is recycled before the image loading has been completed
-        if(holder.getDownloadImageTask() != null) {
+        if (holder.getDownloadImageTask() != null) {
             holder.getDownloadImageTask().cancel(true);
         }
     }

@@ -23,7 +23,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.Callable;
 
-import org.droidupnp.Main;
+import org.droidupnp.MainActivity;
 import org.droidupnp.R;
 import org.droidupnp.model.cling.RendererState;
 import org.droidupnp.model.upnp.ARendererState;
@@ -31,7 +31,6 @@ import org.droidupnp.model.upnp.IRendererCommand;
 import org.droidupnp.model.upnp.IUpnpDevice;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,7 +45,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class RendererFragment extends Fragment implements Observer {
+public class RendererFragment extends android.support.v4.app.Fragment implements Observer {
     private static final String TAG = "RendererFragment";
 
     private IUpnpDevice device;
@@ -65,6 +64,16 @@ public class RendererFragment extends Fragment implements Observer {
     TextView duration;
     boolean durationRemaining;
 
+    // newInstance constructor for creating fragment with arguments
+    public static android.support.v4.app.Fragment newInstance(int page, String title) {
+        android.support.v4.app.Fragment fragmentFirst = new RendererFragment();
+        Bundle args = new Bundle();
+        args.putInt("someInt", page);
+        args.putString("someTitle", title);
+        fragmentFirst.setArguments(args);
+        return fragmentFirst;
+    }
+
     public RendererFragment() {
         super();
         durationRemaining = true;
@@ -74,9 +83,9 @@ public class RendererFragment extends Fragment implements Observer {
         Activity a = getActivity();
         if (a == null)
             return;
-        a.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-        a.findViewById(R.id.separator).setVisibility(View.INVISIBLE);
-        getFragmentManager().beginTransaction().hide(this).commit();
+       // a.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+       // a.findViewById(R.id.separator).setVisibility(View.INVISIBLE);
+      //  getFragmentManager().beginTransaction().hide(this).commit();
     }
 
     public void show() {
@@ -84,7 +93,6 @@ public class RendererFragment extends Fragment implements Observer {
         if (a == null)
             return;
         a.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        a.findViewById(R.id.separator).setVisibility(View.VISIBLE);
         getFragmentManager().beginTransaction().show(this).commit();
     }
 
@@ -93,8 +101,8 @@ public class RendererFragment extends Fragment implements Observer {
         super.onActivityCreated(savedInstanceState);
 
         // Listen to renderer change
-        if (Main.upnpServiceController != null)
-            Main.upnpServiceController.addSelectedRendererObserver(this);
+        if (MainActivity.upnpServiceController != null)
+            MainActivity.upnpServiceController.addSelectedRendererObserver(this);
         else
             Log.w(TAG, "upnpServiceController was not ready !!!");
 
@@ -106,7 +114,7 @@ public class RendererFragment extends Fragment implements Observer {
     public void onStart() {
         super.onStart();
 
-        // Call Main Initialise Function
+        // Call MainActivity Initialise Function
         this.init();
     }
 
@@ -129,7 +137,7 @@ public class RendererFragment extends Fragment implements Observer {
 
     @Override
     public void onDestroy() {
-        Main.upnpServiceController.delSelectedRendererObserver(this);
+        MainActivity.upnpServiceController.delSelectedRendererObserver(this);
         super.onDestroy();
     }
 
@@ -139,7 +147,7 @@ public class RendererFragment extends Fragment implements Observer {
     }
 
     public void startControlPoint() {
-        if (Main.upnpServiceController.getSelectedRenderer() == null) {
+        if (MainActivity.upnpServiceController.getSelectedRenderer() == null) {
             if (device != null) {
                 Log.i(TAG, "Current renderer have been removed");
                 device = null;
@@ -163,13 +171,13 @@ public class RendererFragment extends Fragment implements Observer {
         }
 
         if (device == null || rendererState == null || rendererCommand == null
-                || !device.equals(Main.upnpServiceController.getSelectedRenderer())) {
-            device = Main.upnpServiceController.getSelectedRenderer();
+                || !device.equals(MainActivity.upnpServiceController.getSelectedRenderer())) {
+            device = MainActivity.upnpServiceController.getSelectedRenderer();
 
-            Log.i(TAG, "Renderer changed !!! " + Main.upnpServiceController.getSelectedRenderer().getDisplayString());
+            Log.i(TAG, "Renderer changed !!! " + MainActivity.upnpServiceController.getSelectedRenderer().getDisplayString());
 
-            rendererState = Main.factory.createRendererState();
-            rendererCommand = Main.factory.createRendererCommand(rendererState);
+            rendererState = MainActivity.factory.createRendererState();
+            rendererCommand = MainActivity.factory.createRendererCommand(rendererState);
 
             if (rendererState == null || rendererCommand == null) {
                 Log.e(TAG, "Fail to create renderer command and/or state");

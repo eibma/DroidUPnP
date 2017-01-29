@@ -24,10 +24,12 @@ import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +38,9 @@ import android.support.v4.widget.DrawerLayout;
 import org.droidupnp.controller.upnp.IUpnpServiceController;
 import org.droidupnp.model.upnp.IFactory;
 import org.droidupnp.view.ContentDirectoryFragment;
+import org.droidupnp.view.NowPlayingFragment;
+import org.droidupnp.view.PlaylistFragment;
+import org.droidupnp.view.RendererFragment;
 import org.droidupnp.view.SettingsActivity;
 
 import java.net.Inet4Address;
@@ -44,8 +49,8 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
-public class Main extends AppCompatActivity {
-    private static final String TAG = "Main";
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
     // Controller
     public static IUpnpServiceController upnpServiceController = null;
@@ -101,6 +106,10 @@ public class Main extends AppCompatActivity {
                     R.id.navigation_drawer,
                     (DrawerLayout) findViewById(R.id.drawer_layout));
         }
+
+       ViewPager vpPager = (ViewPager) findViewById(R.id.content);
+        FragmentPagerAdapter adapterViewPager = new MainPagerAdapter(getSupportFragmentManager());
+       vpPager.setAdapter(adapterViewPager);
     }
 
     @Override
@@ -221,5 +230,46 @@ public class Main extends AppCompatActivity {
         }
 
         return InetAddress.getByName("0.0.0.0");
+    }
+
+
+    public static class MainPagerAdapter extends FragmentPagerAdapter {
+        private static int NUM_ITEMS = 2;
+
+        public MainPagerAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        // Returns total number of pages
+        @Override
+        public int getCount() {
+            return NUM_ITEMS;
+        }
+
+        // Returns the fragment to display for that page
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return ContentDirectoryFragment.newInstance(0, "Page # 1");
+                case 1:
+                    return NowPlayingFragment.newInstance(1, "Page # 2");
+                case 2: // Playlist not yet implemented
+                    return PlaylistFragment.newInstance(2, "Page # 2");
+                default:
+                    return null;
+            }
+        }
+
+        // Returns the page title for the top indicator
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch(position) {
+                case 0: return "Library";
+                case 1: return "Now Playing";
+                case 2: return "Playlist";
+            }
+            return "Error";
+        }
     }
 }

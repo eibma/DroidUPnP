@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   Copyright (C) 2013 Aurélien Chabot <aurelien@chabot.fr>
 
   This file is part of DroidUPNP.
@@ -20,7 +19,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.droidupnp"
     android:versionCode="15"
-    android:versionName="2.3.0" >
+    android:versionName="2.3.0">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -31,26 +30,28 @@
 
     <application
         android:allowBackup="true"
+        android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:icon="@drawable/logo"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
-            android:name="org.droidupnp.Main"
-            android:label="@string/app_name" >
+            android:name=".MainActivity"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name="org.droidupnp.view.SettingsActivity"
-            android:label="@string/app_name" >
+            android:name=".view.SettingsActivity"
+            android:label="@string/app_name">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.droidupnp.Main" />
+                android:value="org.droidupnp.MainActivity" />
         </activity>
-        <service android:name="org.droidupnp.model.cling.UpnpService" />
+
+        <service android:name=".model.cling.UpnpService" />
     </application>
 
 </manifest>
