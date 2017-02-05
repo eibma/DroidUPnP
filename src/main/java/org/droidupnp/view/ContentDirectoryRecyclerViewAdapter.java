@@ -115,8 +115,9 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
     }
 
     public void addDataset(ArrayList<DIDLObjectDisplay> content) {
+        int positionStart = content.size();
         mContent.addAll(content);
-        notifyDataSetChanged();
+        notifyItemRangeInserted(positionStart, content.size());
     }
 
     // Create new views (invoked by the layout manager)
@@ -206,6 +207,11 @@ public class ContentDirectoryRecyclerViewAdapter extends RecyclerView.Adapter<Co
             this.imageView = imageView;
             this.url = url;
             imageView.setImageResource(android.R.color.transparent);
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
         }
 
         @Override

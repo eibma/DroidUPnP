@@ -177,22 +177,18 @@ public class ContentDirectoryFragment extends Fragment implements Observer {
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) //check for scroll down
-                {
+                if (dy > 0 && mContentDirectoryCommand.hasMoreItems()) {
                     visibleItemCount = mLayoutManager.getChildCount();
                     totalItemCount = mLayoutManager.getItemCount();
                     pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
 
                     if (loading) {
-                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
-                            loading = false;
-                            Log.v("...", "Last Item Wow !");
+                        loading = false;
 
-                            if (tree != null && tree.size() > 0) {
-                                String parentID = (tree.size() > 0) ? tree.getLast() : null;
-                                Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
-                                mContentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
-                            }
+                        if (tree != null && tree.size() > 0) {
+                            String parentID = (tree.size() > 0) ? tree.getLast() : null;
+                            Log.i(TAG, "Browse, currentID : " + currentID + ", parentID : " + parentID);
+                            mContentDirectoryCommand.continueBrowse(currentID, parentID, new AdditionalContentCallback());
                         }
                     }
                 }
