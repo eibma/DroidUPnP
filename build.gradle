@@ -1,97 +1,27 @@
+// Top-level build file where you can add configuration options common to all$
+
 buildscript {
+
     repositories {
-        mavenCentral()
+        google()
+        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-    }
-}
-apply plugin: 'com.android.application'
+        classpath 'com.android.tools.build:gradle:3.0.1'
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-    maven {
-        url 'http://4thline.org/m2'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
 
-dependencies {
-    // Android support
-    compile('com.android.support:recyclerview-v7:+') {
-        exclude module: 'support-v4'
-    }
-
-    // Cling
-    compile group: 'org.fourthline.cling', name: 'cling-core', version: '2.1.1'
-    compile group: 'org.fourthline.cling', name: 'cling-support', version: '2.1.1'
-    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '8.1.12.v20130726'
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '8.1.12.v20130726'
-    compile group: 'org.eclipse.jetty', name: 'jetty-client', version: '8.1.12.v20130726'
-    compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.5'
-
-    // Pull To Refresh
-    compile('com.github.chrisbanes.actionbarpulltorefresh:library:+') {
-        exclude module: 'support-v4'
-    }
-
-    compile('de.psdev.licensesdialog:licensesdialog:1.6.0') {
-        exclude module: 'support-v4'
-    }
-    compile 'com.android.support:appcompat-v7:25.1.0'
-    compile 'com.android.support:support-v4:25.1.0'
-}
-
-android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.1"
-
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 23
-    }
-
-    packagingOptions {
-        exclude 'META-INF/beans.xml'
-    }
-
-    lintOptions {
-        abortOnError false
-    }
-
-    signingConfigs { release }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-        }
-    }
-
-    sourceSets {
-        main {
-            manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
-            resources.srcDirs = ['src/main/res']
-            res.srcDirs = ['src/main/res']
-            assets.srcDirs = ['src/main/assets']
-        }
+allprojects {
+    repositories {
+        google()
+        jcenter()
     }
 }
 
-File propFile = file('signing.properties');
-if (propFile.exists()) {
-    def Properties props = new Properties()
-    props.load(new FileInputStream(propFile))
-
-    if (props.containsKey('STORE_FILE') && props.containsKey('STORE_PASSWORD') &&
-            props.containsKey('KEY_ALIAS') && props.containsKey('KEY_PASSWORD')) {
-        android.signingConfigs.release.storeFile = file(props['STORE_FILE'])
-        android.signingConfigs.release.storePassword = props['STORE_PASSWORD']
-        android.signingConfigs.release.keyAlias = props['KEY_ALIAS']
-        android.signingConfigs.release.keyPassword = props['KEY_PASSWORD']
-    } else {
-        android.buildTypes.release.signingConfig = null
-    }
-} else {
-    android.buildTypes.release.signingConfig = null
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
