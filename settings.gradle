@@ -1,0 +1,2 @@
+include ':appm'
+project(':appm').projectDir = new File('app')

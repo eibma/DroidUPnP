@@ -1,0 +1,71 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+    }
+}
+apply plugin: 'com.android.application'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        url 'http://4thline.org/m2'
+    }
+    google()
+}
+
+dependencies {
+    // Android support
+    compile('com.android.support:recyclerview-v7:+') {
+        exclude module: 'support-v4'
+    }
+
+    // Cling
+    compile group: 'org.fourthline.cling', name: 'cling-core', version: '2.1.1'
+    compile group: 'org.fourthline.cling', name: 'cling-support', version: '2.1.1'
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '8.1.12.v20130726'
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '8.1.12.v20130726'
+    compile group: 'org.eclipse.jetty', name: 'jetty-client', version: '8.1.12.v20130726'
+    compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.5'
+
+    // Pull To Refresh
+    compile('com.github.chrisbanes.actionbarpulltorefresh:library:+') {
+        exclude module: 'support-v4'
+    }
+
+    compile('de.psdev.licensesdialog:licensesdialog:1.6.0') {
+        exclude module: 'support-v4'
+    }
+    compile 'com.android.support:appcompat-v7:27.0.2'
+    compile 'com.android.support:support-v4:27.0.2'
+}
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 26
+    }
+
+    packagingOptions {
+        exclude 'META-INF/beans.xml'
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    signingConfigs { release }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
